@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequiredArgsConstructor
@@ -27,8 +28,9 @@ public class AccountController implements AccountsApi {
    * @param createAccountDto User account details (required)
    * @return User account created (status code 201)
    */
+  @PostMapping("/accounts")
   @Override
-  public ResponseEntity<AccountDto> createUserAccount(CreateAccountDto createAccountDto) {
+  public ResponseEntity<AccountDto> createUserAccount(@RequestBody CreateAccountDto createAccountDto) {
     logger.info("Creating account for user with email: {}", createAccountDto.getEmail());
 
     var account =
@@ -47,6 +49,7 @@ public class AccountController implements AccountsApi {
    *
    * @return List of user accounts (status code 200)
    */
+  @GetMapping("get/accounts")
   @Override
   public ResponseEntity<List<AccountDto>> getUserAccounts() {
     logger.info("Retrieving all accounts");
@@ -55,5 +58,19 @@ public class AccountController implements AccountsApi {
     var accountsDto = accounts.stream().map(Mapper::toAccountDto).toList();
 
     return new ResponseEntity<>(accountsDto, HttpStatus.OK);
+  }
+
+  @PatchMapping("/patch/accounts/{accountId}")
+  public ResponseEntity<AccountDto> update(@PathVariable int id, @RequestBody AccountDto accountDto){
+
+    var account =
+            accountService.updateAccount(
+                    Account.builder()
+                            .firstName(accountDto.getFirstName())
+                            .lastName(accountDto.getLastName())
+                            .email(accountDto.getEmail())
+                            .build());
+
+    return new ResponseEntity<>(Mapper.toAccountDto(account), HttpStatus.CREATED);
   }
 }
